@@ -1,47 +1,70 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn
+import seaborn as sns
 from sklearn.metrics import mean_squared_error
-pd.set_option('display.max_columns',None)
-pd.set_option('display.max_rows',None)
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import classification_report
+from sklearn.preprocessing import LabelEncoder
 
 #data
-x =[2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32,34,36,38,40]
-y = [4.2, 8.4, 12.6, 16.8, 21, 25.2, 29.4, 33.6, 37.8, 42, 46.2, 50.4, 54.6, 58.8, 63, 65.5, 68, 70.2, 73.6 ,75]
+df = pd.read_csv(r'D:\python\course python\datasets\survey lung cancer.csv') #upload data
+plt.show()
+df
 x= np.array (x)
 y= np.array(y)
 
-def model (A1,A2,B,X):
-    return A1*X + A2*X**2 + B
-
-def loss (A1,A2,X,B,Y):
-    pred = model (A1,A2,B,X)
-    return (0.5/len(X))*(np.square(pred-Y)).sum()
+#label encoding
+label_encoder=LabelEncoder()
+df['LUNG_CANCER']=label_encoder.fit_transform(df['LUNG_CANCER'])
+df
     
-def optim (A1,A2,X,B,Y):
-    pred = model (A1,A2,B,X)
-    der_a1 =(1.0/len(X))*((pred-Y)*X).sum() # *x عدد اللفات اللي هيلفها علشان يطلع a new
-    der_a2 =(1.0/len(X))*((pred-Y)*X**2).sum() 
-    der_b =(1.0/len(X))*((pred-Y)).sum()
-    new_A1 = A1-ler_rate*der_a1  # ler_rate = alfa 
-    new_A2 = A2-ler_rate*der_a2
-    new_B = B-ler_rate*der_b
-    return new_A1 ,new_A2, new_B    
-    
-def iter (A1,A2,X,B,Y,epochs): # epoches = width (عدد مرات التغيرات)
-    for i in range (epochs):
-        A1,A2,B = optim (A1,A2,X,B,Y)
-    return A1,A2,B
+#choose features
 
-a1= np.random.rand(1)
-a2= np.random.rand(1)
-b= np.random.rand(1)
-ler_rate = 1e-6
-a1,a2,b = iter (a1,a2,x,b,y,200)
-predection= model(a1,a2,b,x)
-loss_fun = loss(a1,a2,x,b,y)
-plt.figure(figsize=(5,5))
-plt.scatter(x,y)
-plt.plot (predection)
-plt.show ()
+x=df[['AGE', 'CHRONIC DISEASE']]
+y= df[['LUNG_CANCER']]
+
+# Encode target variable
+le = LabelEncoder()
+df['LUNG_CANCER'] = le.fit_transform(df['LUNG_CANCER'])
+
+#split data to training and testing
+x_train, x_test, y_train, y_test = train_test_split(x,y,test_size=0.2, shuffle = False ,random_state=42)
+
+# target model
+model1 =LinearRegression()
+model1.fit(x_train, y_train)
+y_train = le.fit_transform(y_train)
+
+# Train logistic regression model
+model = LogisticRegression()
+model.fit(x_train, y_train)
+
+#predict model
+y_pred = model1.predict(x_test)
+
+
+# make output binary predictions
+if y_pred.ndim > 1 and y_pred.shape[1] > 1:
+    y_pred = np.argmax(y_pred, axis=1)  #  multi-class  
+else:
+    y_pred = (y_pred >= 0.5).astype(int)  # binary classification
+
+
+#accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print("Accuracy:", accuracy)
+
+#clssification
+report = classification_report(y_test, y_pred)
+print("Classification Report:\n", report)
+
+
+
+
+
