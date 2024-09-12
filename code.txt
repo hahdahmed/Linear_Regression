@@ -1,0 +1,47 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn
+from sklearn.metrics import mean_squared_error
+pd.set_option('display.max_columns',None)
+pd.set_option('display.max_rows',None)
+
+#data
+x =[2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32,34,36,38,40]
+y = [4.2, 8.4, 12.6, 16.8, 21, 25.2, 29.4, 33.6, 37.8, 42, 46.2, 50.4, 54.6, 58.8, 63, 65.5, 68, 70.2, 73.6 ,75]
+x= np.array (x)
+y= np.array(y)
+
+def model (A1,A2,B,X):
+    return A1*X + A2*X**2 + B
+
+def loss (A1,A2,X,B,Y):
+    pred = model (A1,A2,B,X)
+    return (0.5/len(X))*(np.square(pred-Y)).sum()
+    
+def optim (A1,A2,X,B,Y):
+    pred = model (A1,A2,B,X)
+    der_a1 =(1.0/len(X))*((pred-Y)*X).sum() # *x عدد اللفات اللي هيلفها علشان يطلع a new
+    der_a2 =(1.0/len(X))*((pred-Y)*X**2).sum() 
+    der_b =(1.0/len(X))*((pred-Y)).sum()
+    new_A1 = A1-ler_rate*der_a1  # ler_rate = alfa 
+    new_A2 = A2-ler_rate*der_a2
+    new_B = B-ler_rate*der_b
+    return new_A1 ,new_A2, new_B    
+    
+def iter (A1,A2,X,B,Y,epochs): # epoches = width (عدد مرات التغيرات)
+    for i in range (epochs):
+        A1,A2,B = optim (A1,A2,X,B,Y)
+    return A1,A2,B
+
+a1= np.random.rand(1)
+a2= np.random.rand(1)
+b= np.random.rand(1)
+ler_rate = 1e-6
+a1,a2,b = iter (a1,a2,x,b,y,200)
+predection= model(a1,a2,b,x)
+loss_fun = loss(a1,a2,x,b,y)
+plt.figure(figsize=(5,5))
+plt.scatter(x,y)
+plt.plot (predection)
+plt.show ()
